@@ -1,0 +1,26 @@
+/* 
+  Localizable.strings
+  Reto
+
+  Created by Pablo García on 11/6/17.
+  Copyright © 2017 Pablo García. All rights reserved.
+*/
+
+//Título de la App
+"Title_App" = "RETO";
+
+//Link enlace a web
+"link_text" = "Ver en el navegador";
+
+//Errores
+"No_Connection_with_data_storage" = "Su dispositivo no está conectado a la red. Se ha recuperado la información de una consulta anterior almacenada en memoria.";
+"No_Connection_no_data_storage" = "Su dispositivo no está conectado a la red y no ha datos almacenados en memoria.";
+"Obtain_items_no_connection" = "No se puede realizar la operación ya que su dispositivo no está conectado a la red. Inténtelo más tarde.";
+"No_connection" = "Su dispositivo no está conectado a la red.";
+
+//Palabras recurso.
+"Atencion" = "Atención";
+"Aceptar" = "Aceptar";
+"Error" = "Error";
+"Cargando" = "Cargando...";
+"Atras" = "Atrás";

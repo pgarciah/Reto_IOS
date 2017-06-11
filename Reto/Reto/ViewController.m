@@ -27,7 +27,7 @@ CGFloat const kCellHeight =180.0f;
     [self.navigationController.navigationBar
      setTitleTextAttributes:@{NSForegroundColorAttributeName : [UIColor whiteColor]}];
     self.navigationController.navigationBar.translucent = NO;
-    self.title = @"RETO";
+    self.title = NSLocalizedString(@"Title_App", nil);
     
     self.edgesForExtendedLayout = UIRectEdgeNone;
     
@@ -65,15 +65,13 @@ CGFloat const kCellHeight =180.0f;
         if([_items count]>0){
             _itemSelected = [_items objectAtIndex:0];
             
-            [self createAlertWithTitle:@"Atención" WithMessage:@"Su dispositivo no está conectado a la red. Se ha recuperado la información de una consulta anterior almacenada en memoria." WithPositiveActionTitle:@"Aceptar" WithNegativeActionTitle:nil WithHandlerPositiveAction:nil
+            [self createAlertWithTitle:NSLocalizedString(@"Atencion", nil) WithMessage:NSLocalizedString(@"No_Connection_with_data_storage", nil) WithPositiveActionTitle:NSLocalizedString(@"Aceptar", nil) WithNegativeActionTitle:nil WithHandlerPositiveAction:nil
              WithHandlerNegativeAction:nil];
         }else{
-            [self createAlertWithTitle:@"Atención" WithMessage:@"Su dispositivo no está conectado a la red y no ha datos almacenados en memoria." WithPositiveActionTitle:@"Aceptar" WithNegativeActionTitle:nil WithHandlerPositiveAction:nil
+            [self createAlertWithTitle:NSLocalizedString(@"Atencion", nil) WithMessage:NSLocalizedString(@"No_Connection_no_data_storage", nil) WithPositiveActionTitle:NSLocalizedString(@"Aceptar", nil) WithNegativeActionTitle:nil WithHandlerPositiveAction:nil
              WithHandlerNegativeAction:nil];
         }
         [_tableView reloadData];
-        
-        
     }
     
     // Register search controller
@@ -188,7 +186,8 @@ CGFloat const kCellHeight =180.0f;
     
     _lbl_detail_link.userInteractionEnabled = YES;
     
-    NSMutableAttributedString *attributeString = [[NSMutableAttributedString alloc] initWithString:@"Ver en el navegador"];
+    NSMutableAttributedString *attributeString = [[NSMutableAttributedString alloc] initWithString:NSLocalizedString(@"link_text", nil)];
+    
     [attributeString addAttribute:NSUnderlineStyleAttributeName
                             value:[NSNumber numberWithInt:1]
                             range:(NSRange){0,[attributeString length]}];
@@ -291,7 +290,7 @@ CGFloat const kCellHeight =180.0f;
     if(internetStatus != NotReachable){
         [self obtainRssItems];
     }else{
-        [self createAlertWithTitle:@"Atención" WithMessage:@"No se puede realizar la operación ya que su dispositivo no está conectado a la red. Inténtelo más tarde." WithPositiveActionTitle:@"Aceptar" WithNegativeActionTitle:nil WithHandlerPositiveAction:nil
+        [self createAlertWithTitle:NSLocalizedString(@"Atencion", nil) WithMessage:NSLocalizedString(@"Obtain_items_no_connection", nil) WithPositiveActionTitle:NSLocalizedString(@"Aceptar", nil) WithNegativeActionTitle:nil WithHandlerPositiveAction:nil
          WithHandlerNegativeAction:nil];
     }
 }
@@ -328,7 +327,7 @@ CGFloat const kCellHeight =180.0f;
                 
             }else{
                 //ERROR
-                [self createAlertWithTitle:@"Error" WithMessage:rssResponse.msgError WithPositiveActionTitle:@"Aceptar" WithNegativeActionTitle:nil WithHandlerPositiveAction:nil WithHandlerNegativeAction:nil];
+                [self createAlertWithTitle:NSLocalizedString(@"Error", nil) WithMessage:rssResponse.msgError WithPositiveActionTitle:NSLocalizedString(@"Aceptar", nil) WithNegativeActionTitle:nil WithHandlerPositiveAction:nil WithHandlerNegativeAction:nil];
             }
         });
     });
@@ -424,7 +423,8 @@ CGFloat const kCellHeight =180.0f;
     NetworkStatus internetStatus = [internetReachable currentReachabilityStatus];
     if(internetStatus == NotReachable){
         //NO Internet
-        [self createAlertWithTitle:@"Atención" WithMessage:@"Su dispositivo no está conectado a la red." WithPositiveActionTitle:@"Aceptar" WithNegativeActionTitle:nil WithHandlerPositiveAction:nil
+        
+        [self createAlertWithTitle:NSLocalizedString(@"Atencion", nil) WithMessage:NSLocalizedString(@"No_connection", nil) WithPositiveActionTitle:NSLocalizedString(@"Aceptar", nil) WithNegativeActionTitle:nil WithHandlerPositiveAction:nil
          WithHandlerNegativeAction:nil];
     }else {
         //internet
@@ -439,7 +439,7 @@ CGFloat const kCellHeight =180.0f;
     HUD = HUD_;
     [self.view addSubview:HUD];
     HUD_ = nil;
-    HUD.labelText = NSLocalizedString(@"Cargando...", nil);
+    HUD.labelText = NSLocalizedString(@"Cargando", nil);
     [HUD show:YES];
     [self.view bringSubviewToFront:HUD];
 }
@@ -539,6 +539,7 @@ CGFloat const kCellHeight =180.0f;
 }
 
 - (void) showBackButton{
+    self.buttonAtras.title = NSLocalizedString(@"Atras", nil);
     [self.buttonAtras setEnabled:YES];
     [self.buttonAtras setTintColor:nil];
     [self.tableView setHidden:YES];
