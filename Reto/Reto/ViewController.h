@@ -15,7 +15,7 @@
 #import "AppDelegate.h"
 
 
-@interface ViewController : UIViewController<UIScrollViewDelegate,UITableViewDataSource, UITableViewDelegate,UISearchBarDelegate, UISearchControllerDelegate, UISearchResultsUpdating>{
+@interface ViewController : UIViewController<UIScrollViewDelegate,UITableViewDataSource, UITableViewDelegate,UISearchBarDelegate, UISearchControllerDelegate, UISearchResultsUpdating, UIGestureRecognizerDelegate>{
     
 @private
     Reachability *internetReachable;

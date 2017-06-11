@@ -194,9 +194,9 @@ CGFloat const kCellHeight =180.0f;
     
     _lbl_detail_link.attributedText = attributeString;
     
-    UITapGestureRecognizer *linkTap = [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(openNavigatorWithURL)];
-    
-    [_lbl_detail_link addGestureRecognizer:linkTap];
+    UITapGestureRecognizer *singleTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(openNavigatorWithURL)];
+    singleTap.delegate = self;
+    [_scrollView addGestureRecognizer:singleTap];
     
     [self launchUrlImage:_itemSelected.link_image In:_iv_detail];
     
@@ -226,9 +226,21 @@ CGFloat const kCellHeight =180.0f;
 
 //////////////////////////////////////////////////////////////////
 
+-(BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldReceiveTouch:(UITouch *)touch{
+    
+    CGPoint touchPoint  = [touch locationInView:touch.view];
+    if(CGRectContainsPoint(_lbl_detail_link.frame, touchPoint)){
+        return YES;
+    }else{
+        return NO;
+    }
+    
+}
+
 - (void)openNavigatorWithURL {
     [[UIApplication sharedApplication] openURL:[NSURL URLWithString:_itemSelected.link]];
 }
+
 
 ///////////////////////////////////////////////////////////////////////
 // KEYBOARD
