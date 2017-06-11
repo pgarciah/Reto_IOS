@@ -6,6 +6,34 @@
 //  Copyright © 2017 Pablo García. All rights reserved.
 //
 
+/*
+ RSS de noticias.
+ 
+ La aplicación se adapta a iPhone y iPad. En el caso de iPhone, por ser la pantalla más pequeña se muestran dos vistas, una con el listado de elementos, y otra con el detalle independientemente de la orientación.
+ 
+ En el caso de iPad, si el dispositivo está en landscape, se muestran a la vez las vistas de listado y detalle.
+ 
+ Para listar los elementos se hace una de una celda customizada definida en otra clase.
+ 
+ Los elementos se listan ordenados por fecha (de más reciente a más antigua) y pueden ser filtrados.
+ 
+ En caso de haber obtenido alguna vez los elementos, la aplicación permite trabajar sin conexión, ya que mantiene una copia local de los elementos.
+ 
+ El servicio para obtener los elementos se llama en otro hilo, de forma que el principal no queda bloqueado y puede mostrar el típico "Cargando...".
+ 
+ Si se tiene conexión, se puede refrescar la información del RSS, haciendo scroll en la cabecera de la tabla (gesto habitual de refresh en listados).
+ 
+ Las imágenes de cada item se obtienen de manera asíncrona para evitar que el hilo principal quede bloqueado o que el usuario tenga que esperar demasiado si la conexión no es buena. Además, una vez obtenidas se almacenan para que no tengan que volver a descargarse en caso de repintandos en la vista.
+ 
+ Se hace uso de 4 librerías auxiliares:
+ 
+ - UIImageViewAsyn -> Cargar imágenes en un hilo asíncrono.
+ - MBProgressHUD -> Para mostrar/ocultar popUp de "cargando...".
+ - XMLDictionary -> Para parsear código XML y transformarlo en estructuras de datos con las que poder trabajar.
+ - Reachability -> Para comprobar si hay conexión de red y detectar cambios en la misma.
+ 
+ */
+
 #import "ViewController.h"
 #import "RssTableViewCell.h"
 
@@ -58,16 +86,20 @@ CGFloat const kCellHeight =180.0f;
     internetReachable = [Reachability reachabilityForInternetConnection];
     NetworkStatus internetStatus = [internetReachable currentReachabilityStatus];
     if(internetStatus != NotReachable){
+        //Internet connection is OK. Obtain items from server.
         [self obtainRssItems];
     }else{
+        //No internet connection. Check memory contains items.
         [self readItems];
         _displayedItems = self.items;
         if([_items count]>0){
             _itemSelected = [_items objectAtIndex:0];
             
+            //Info to user.
             [self createAlertWithTitle:NSLocalizedString(@"Atencion", nil) WithMessage:NSLocalizedString(@"No_Connection_with_data_storage", nil) WithPositiveActionTitle:NSLocalizedString(@"Aceptar", nil) WithNegativeActionTitle:nil WithHandlerPositiveAction:nil
              WithHandlerNegativeAction:nil];
         }else{
+            //Info to user.
             [self createAlertWithTitle:NSLocalizedString(@"Atencion", nil) WithMessage:NSLocalizedString(@"No_Connection_no_data_storage", nil) WithPositiveActionTitle:NSLocalizedString(@"Aceptar", nil) WithNegativeActionTitle:nil WithHandlerPositiveAction:nil
              WithHandlerNegativeAction:nil];
         }
@@ -129,24 +161,26 @@ CGFloat const kCellHeight =180.0f;
 #pragma mark - Table view data source
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView{
-    return 1;
+    return 1; //Only 1 section.
 }
 
 //////////////////////////////////////////////////////////////////
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath{
-    return kCellHeight;
+    return kCellHeight; //Height of custom cell
 }
 
 //////////////////////////////////////////////////////////////////
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section{
-    return [_displayedItems count];
+    return [_displayedItems count]; //Items filter.
 }
 
 //////////////////////////////////////////////////////////////////
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
+    
+    //Custom cell
     RssTableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:kCellIdentifier forIndexPath:indexPath];
     cell.selectionStyle = UITableViewCellSelectionStyleNone;
     ItemBean *ib = [_displayedItems objectAtIndex:indexPath.row];
@@ -154,11 +188,12 @@ CGFloat const kCellHeight =180.0f;
     cell.lbl_title.text = ib.title;
     cell.lbl_desc.text = ib.desc;
     
+    //Adjust font size.
     cell.lbl_title.minimumScaleFactor = 0.5f;
     cell.lbl_title.adjustsFontSizeToFitWidth = YES;
-    
     [cell.lbl_desc setFont:[UIFont fontWithName:cell.lbl_desc.font.fontName size:sizeFontDescription]];
     
+    //Launch image in thread
     [self launchUrlImage:ib.link_image In:cell.iv_image];
     
     return cell;
@@ -174,6 +209,7 @@ CGFloat const kCellHeight =180.0f;
         _searchController.active = NO;
     }
     
+    //Show detail of selected item
     [self drawViewDetail];
 }
 
@@ -182,8 +218,10 @@ CGFloat const kCellHeight =180.0f;
 -(void)drawViewDetail{
     UIDeviceOrientation orientation = [[UIDevice currentDevice] orientation];
     
+    //Update title
     _lbl_detail_title.text = _itemSelected.title;
     
+    //Crate link to webside
     _lbl_detail_link.userInteractionEnabled = YES;
     
     NSMutableAttributedString *attributeString = [[NSMutableAttributedString alloc] initWithString:NSLocalizedString(@"link_text", nil)];
@@ -198,10 +236,14 @@ CGFloat const kCellHeight =180.0f;
     singleTap.delegate = self;
     [_scrollView addGestureRecognizer:singleTap];
     
+    //Obtain image
     [self launchUrlImage:_itemSelected.link_image In:_iv_detail];
     
+    //Update description
     _ta_detail_desc.text =_itemSelected.desc;
     
+    
+    //Adjust content view to new subwiews height.
     CGFloat extraSpace = 20.0f;
     if(UIDeviceOrientationIsLandscape(orientation)){
         extraSpace =64.0f;
@@ -209,25 +251,29 @@ CGFloat const kCellHeight =180.0f;
     
     [self.contentView setFrame:CGRectMake(self.contentView.frame.origin.x, self.contentView.frame.origin.y, self.contentView.frame.origin.y, _ta_detail_desc.frame.origin.y + _ta_detail_desc.frame.size.height+extraSpace)];
     
+    //Adjust scrollview to new contentView height.
     CGRect contentRect = CGRectZero;
     for (UIView *view in self.scrollView.subviews) {
         contentRect = CGRectUnion(contentRect, view.frame);
     }
     self.scrollView.contentSize = contentRect.size;
     
+    
     if ((UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) &&
         (UIDeviceOrientationIsLandscape(orientation))){
-        
     }else{
+        //Show back button
         [self.view bringSubviewToFront:_scrollView];
         [self showBackButton];
     }
 }
 
-//////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////
+// TAP LINK
+///////////////////////////////////////////////////////////////////////
 
 -(BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldReceiveTouch:(UITouch *)touch{
-    
+    //Check if tap is in link
     CGPoint touchPoint  = [touch locationInView:touch.view];
     if(CGRectContainsPoint(_lbl_detail_link.frame, touchPoint)){
         return YES;
@@ -238,6 +284,7 @@ CGFloat const kCellHeight =180.0f;
 }
 
 - (void)openNavigatorWithURL {
+    //Open browser
     [[UIApplication sharedApplication] openURL:[NSURL URLWithString:_itemSelected.link]];
 }
 
@@ -249,8 +296,9 @@ CGFloat const kCellHeight =180.0f;
 #pragma mark - Keyboard
 
 ///////////////////////////////////////////////////////
-- (void)registerForKeyboardNotifications
-{
+- (void)registerForKeyboardNotifications{
+    //Register listener to open/close keyboard
+    
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(keyboardWasShown:)
                                                  name:UIKeyboardDidShowNotification object:nil];
@@ -273,7 +321,10 @@ CGFloat const kCellHeight =180.0f;
     [viewKeyboard setHidden:YES];
 }
 
+//////////////////////////////////////////////////////////////////
 -(void) createKeyboardAuxView{
+    //Show subview to desactive keyboard if user tapped.
+    
     viewKeyboard = [[UIView alloc]initWithFrame:CGRectMake(0, 0, 3000, 3000)];
     
     [viewKeyboard setAlpha:0.3];
@@ -287,7 +338,9 @@ CGFloat const kCellHeight =180.0f;
     [viewKeyboard setHidden:YES];
 }
 
+//////////////////////////////////////////////////////////////////
 -(void)tapViewKeyboard{
+    //hide keyboard programatically
     [[UIApplication sharedApplication] sendAction:@selector(resignFirstResponder) to:nil from:nil forEvent:nil];
 }
 
@@ -302,6 +355,7 @@ CGFloat const kCellHeight =180.0f;
     if(internetStatus != NotReachable){
         [self obtainRssItems];
     }else{
+        //Unable to call service. No internet.
         [self createAlertWithTitle:NSLocalizedString(@"Atencion", nil) WithMessage:NSLocalizedString(@"Obtain_items_no_connection", nil) WithPositiveActionTitle:NSLocalizedString(@"Aceptar", nil) WithNegativeActionTitle:nil WithHandlerPositiveAction:nil
          WithHandlerNegativeAction:nil];
     }
@@ -324,7 +378,6 @@ CGFloat const kCellHeight =180.0f;
     [self showLoadingHUD];
     
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), ^{
-        
         rssResponse = [serviceObject obtainItemsRSS];
         dispatch_async(dispatch_get_main_queue(), ^{
             [self hideLoadingHUD];
@@ -347,6 +400,10 @@ CGFloat const kCellHeight =180.0f;
         });
     });
 }
+
+///////////////////////////////////////////////////////////////////////
+// ORDER ITEMS
+///////////////////////////////////////////////////////////////////////
 
 -(void) orderItems{
     NSArray *sortedArray = [_items sortedArrayUsingComparator:^NSComparisonResult(ItemBean *ib1, ItemBean *ib2){
@@ -381,7 +438,6 @@ CGFloat const kCellHeight =180.0f;
 ///////////////////////////////////////////////////////////////////////
 // SEGUE (NAVIGATION TO OTHERS VIEW CONTROLLER)
 ///////////////////////////////////////////////////////////////////////
-
 #pragma mark - Segue
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender{
@@ -407,6 +463,8 @@ CGFloat const kCellHeight =180.0f;
 //////////////////////////////////////////////////////////////////
 
 - (void)deviceOrientationDidChange:(NSNotification *)notification {
+    //iPad landscape show special design.
+    
     UIDeviceOrientation orientation = [[UIDevice currentDevice] orientation];
     self.searchController.active = NO;
     
@@ -446,11 +504,8 @@ CGFloat const kCellHeight =180.0f;
     NetworkStatus internetStatus = [internetReachable currentReachabilityStatus];
     if(internetStatus == NotReachable){
         //NO Internet
-        
         [self createAlertWithTitle:NSLocalizedString(@"Atencion", nil) WithMessage:NSLocalizedString(@"No_connection", nil) WithPositiveActionTitle:NSLocalizedString(@"Aceptar", nil) WithNegativeActionTitle:nil WithHandlerPositiveAction:nil
          WithHandlerNegativeAction:nil];
-    }else {
-        //internet
     }
 }
 
@@ -561,12 +616,16 @@ CGFloat const kCellHeight =180.0f;
     [self hideBackButton];
 }
 
+//////////////////////////////////////////////////////////////////
+
 - (void) showBackButton{
     self.buttonAtras.title = NSLocalizedString(@"Atras", nil);
     [self.buttonAtras setEnabled:YES];
     [self.buttonAtras setTintColor:nil];
     [self.tableView setHidden:YES];
 }
+
+//////////////////////////////////////////////////////////////////
 
 - (void) hideBackButton{
     [self.tableView setHidden:NO];
@@ -589,6 +648,8 @@ CGFloat const kCellHeight =180.0f;
         });
     });
 }
+
+//////////////////////////////////////////////////////////////////
 
 -(void) launchUrlImage:(NSString*)url In:(UIImageViewAsync*)iv_image{
     [iv_image setImage:[UIImage imageNamed:@"pixel_vacio-png"]];
@@ -635,3 +696,5 @@ CGFloat const kCellHeight =180.0f;
     
 }
 @end
+
+//////////////////////////////////////////////////////////////////
