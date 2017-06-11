@@ -123,17 +123,15 @@
 		7758D1701EEAEBBB006C0987 /* Reto */ = {
 			isa = PBXGroup;
 			children = (
-				773AF3821EEBF6C60036AB0D /* Services */,
-				7758D1951EEAF1FB006C0987 /* Beans */,
-				773AF3781EEBE5E40036AB0D /* Utils */,
-				7758D1961EEAF209006C0987 /* Views */,
 				7758D1741EEAEBBB006C0987 /* AppDelegate.h */,
 				7758D1751EEAEBBB006C0987 /* AppDelegate.m */,
-				7758D17A1EEAEBBB006C0987 /* Main.storyboard */,
-				7758D17F1EEAEBBB006C0987 /* LaunchScreen.storyboard */,
-				7758D1821EEAEBBB006C0987 /* Info.plist */,
+				7758D1961EEAF209006C0987 /* Views */,
+				7758D1951EEAF1FB006C0987 /* Beans */,
+				773AF3821EEBF6C60036AB0D /* Services */,
+				773AF3781EEBE5E40036AB0D /* Utils */,
 				7758D17D1EEAEBBB006C0987 /* Assets.xcassets */,
 				7758D1711EEAEBBB006C0987 /* Supporting Files */,
+				7758D1821EEAEBBB006C0987 /* Info.plist */,
 				773AF3B11EED30020036AB0D /* Localizable.strings */,
 			);
 			path = Reto;
@@ -172,6 +170,8 @@
 		7758D1961EEAF209006C0987 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				7758D17A1EEAEBBB006C0987 /* Main.storyboard */,
+				7758D17F1EEAEBBB006C0987 /* LaunchScreen.storyboard */,
 				7758D1921EEAED66006C0987 /* Cells */,
 				773AF37E1EEBF66E0036AB0D /* ViewController */,
 			);
