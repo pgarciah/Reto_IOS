@@ -330,6 +330,9 @@ CGFloat const kCellHeight =180.0f;
             [self hideLoadingHUD];
             if(rssResponse!=nil && !rssResponse.error){
                 _items = rssResponse.items;
+            
+                [self orderItems];
+                
                 _displayedItems = self.items;
                 [self storeItems];
                 if([_items count]>0){
@@ -343,6 +346,14 @@ CGFloat const kCellHeight =180.0f;
             }
         });
     });
+}
+
+-(void) orderItems{
+    NSArray *sortedArray = [_items sortedArrayUsingComparator:^NSComparisonResult(ItemBean *ib1, ItemBean *ib2){
+        return [ib1 compararOrdenDataInverso:ib2];
+        
+    }];
+    _items = [NSMutableArray arrayWithArray:sortedArray];
 }
 
 ///////////////////////////////////////////////////////////////////////

@@ -17,4 +17,7 @@
 @property (strong,nonatomic) NSString *date;
 @property (strong,nonatomic) NSString *link_image;
 
+- (NSComparisonResult)compararOrdenData:(ItemBean*)otherBean;
+- (NSComparisonResult)compararOrdenDataInverso:(ItemBean*)otherBean;
+
 @end
